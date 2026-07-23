@@ -1,0 +1,145 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_STATES 10
+#define MAX_SYMBOLS 10
+#define MAX_STRING 100
+
+int main()
+{
+    int nStates, nSymbols;
+    char symbols[MAX_SYMBOLS];
+    int finalStates[MAX_STATES] = {0};
+    int transition[MAX_STATES][MAX_SYMBOLS][MAX_STATES];
+    char input[MAX_STRING];
+    int i, j, k;
+
+    // Initialize transitions
+    for(i = 0; i < MAX_STATES; i++)
+        for(j = 0; j < MAX_SYMBOLS; j++)
+            for(k = 0; k < MAX_STATES; k++)
+                transition[i][j][k] = 0;
+
+    printf("How many states in the NFA: ");
+    scanf("%d", &nStates);
+
+    printf("How many symbols in the input alphabet: ");
+    scanf("%d", &nSymbols);
+
+    for(i = 0; i < nSymbols; i++)
+    {
+        printf("Enter input symbol %d: ", i + 1);
+        scanf(" %c", &symbols[i]);
+    }
+
+    int nFinal;
+    printf("How many final states: ");
+    scanf("%d", &nFinal);
+
+    for(i = 0; i < nFinal; i++)
+    {
+        int fs;
+        printf("Enter final state %d: ", i + 1);
+        scanf("%d", &fs);
+        finalStates[fs] = 1;
+    }
+
+    // Enter transitions
+    printf("\nEnter transitions (number of next states followed by state numbers)\n");
+
+    for(i = 0; i < nStates; i++)
+    {
+        for(j = 0; j < nSymbols; j++)
+        {
+            int count;
+            printf("Transition from state %d for input %c\n", i, symbols[j]);
+            printf("Number of next states: ");
+            scanf("%d", &count);
+
+            printf("Enter next states: ");
+            for(k = 0; k < count; k++)
+            {
+                int next;
+                scanf("%d", &next);
+                transition[i][j][next] = 1;
+            }
+        }
+    }
+
+    while(1)
+    {
+        printf("\nEnter the input string: ");
+        scanf("%s", input);
+
+        int current[MAX_STATES] = {0};
+        int next[MAX_STATES] = {0};
+
+        current[0] = 1;   // Start state = 0
+
+        for(i = 0; input[i] != '\0'; i++)
+        {
+            int symbolIndex = -1;
+
+            for(j = 0; j < nSymbols; j++)
+            {
+                if(input[i] == symbols[j])
+                {
+                    symbolIndex = j;
+                    break;
+                }
+            }
+
+            if(symbolIndex == -1)
+            {
+                printf("Invalid input symbol.\n");
+                break;
+            }
+
+            for(j = 0; j < nStates; j++)
+                next[j] = 0;
+
+            for(j = 0; j < nStates; j++)
+            {
+                if(current[j])
+                {
+                    for(k = 0; k < nStates; k++)
+                    {
+                        if(transition[j][symbolIndex][k])
+                            next[k] = 1;
+                    }
+                }
+            }
+
+            for(j = 0; j < nStates; j++)
+                current[j] = next[j];
+        }
+
+        int accept = 0;
+
+        if(input[i] == '\0')
+        {
+            for(i = 0; i < nStates; i++)
+            {
+                if(current[i] && finalStates[i])
+                {
+                    accept = 1;
+                    break;
+                }
+            }
+
+            if(accept)
+                printf("String Accepted.\n");
+            else
+                printf("String Rejected.\n");
+        }
+
+        char choice;
+        printf("\nTry with another string? (y/n): ");
+        scanf(" %c", &choice);
+
+        if(choice != 'y' && choice != 'Y')
+            break;
+    }
+
+    return 0;
+}
